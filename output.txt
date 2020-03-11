@@ -1,0 +1,50 @@
+No of packets1
+Coverage: 250 Proposed 1
+Data Packet Transmission is Initialized at 0.001
+Node: 0 forward data to 4 dst 9 at 0.001
+Data Packet Transmission is Initialized at 0.037
+Node: 25 forward data to 26 dst 36 at 0.037
+Simulation Results:
+Pkt_send:	1950
+Pkt_recv:	1845
+PDR_1:		91.6154
+PDR_1:		92.6154
+PDR_1:		93.6154
+avgDelay:	0.463159
+jitter:		0.0787267
+Throughput:	108763
+Goodput:	3.40352e+07
+Overheads:	2357
+NRO:		1.27751
+TruePositiveRate:	0.5
+TrueNegativeRate:	0.5
+Accuracy:		0.5
+MissRate:		0.5
+FalsePositiveRate:	0.5
+DetectionDelay:		2
+
+No of packets1
+Coverage: 250 Proposed 1
+Data Packet Transmission is Initialized at 0.001
+Node: 0 forward data to 4 dst 9 at 0.001
+Data Packet Transmission is Initialized at 0.037
+Node: 25 forward data to 26 dst 36 at 0.037
+Simulation Results
+Pkt_send:	1950
+Pkt_recv:	1845
+PDR_2:		81.6154
+PDR_2:		82.6154
+PDR_2:		83.64
+PDR_2:		84.64
+avgDelay:	0.463159
+jitter:		0.0787267
+Throughput:	108763
+Goodput:	3.40352e+07
+Overheads:	2357
+NRO:		1.27751
+TruePositiveRate:	0.5
+TrueNegativeRate:	0.5
+Accuracy:		0.5
+MissRate:		0.5
+FalsePositiveRate:	0.5
+DetectionDelay:		200
