@@ -274,6 +274,10 @@ public:
         double		speed;
         double		L;
         double		priority;
+        int             nodeState;
+        int             memCount;
+
+
 };
 
 } // namespace ns3
