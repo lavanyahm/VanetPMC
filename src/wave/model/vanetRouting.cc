@@ -1306,6 +1306,7 @@ namespace ns3 {
     packet->TO_CH_HOP   =       TO_CH_HOP;
 
     SchedulePacketWithoutContext(packet);
+    //SchedulePacketWithoutContext(packet,linkLayerTarget);
     routingOverhead++;
 
     transitionTimer.SetFunction (&vanetRouting::StateChecking, this);
@@ -1591,6 +1592,7 @@ void	vanetRouting::JoinCluster(nsaddr_t nid)
   packet->nextHop = nid;
 
   joinResRevd = false;
+  //SchedulePacketWithoutContext(packet,linkLayerTarget);
   SchedulePacketWithoutContext(packet);
   joinCHTimer.Cancel ();
   joinCHTimer.SetFunction (&vanetRouting::joinCH, this);
@@ -1675,7 +1677,7 @@ void	vanetRouting::sendJoinResponse(nsaddr_t nid)
 #if PRINT_CLUSTER_TRANS
   cout<<"sendJoinResponse Sender "<<node_->GetId ()<<" --> "<<nid<<" CH_ID "<<CH_ID<<" TO_CH_HOP "<<TO_CH_HOP<<  " at "<<CURRENT_TIME<<endl;
 #endif
-  //	SchedulePacketWithoutContext(packet,linkLayerTarget);
+  	//SchedulePacketWithoutContext(packet,linkLayerTarget);
   SchedulePacketWithoutContext(packet);
   routingOverhead++;
 }
@@ -1789,6 +1791,7 @@ void	vanetRouting::PerformClusterMerging(nsaddr_t nid)
 
       cout<<"\nClusterMergeRequest"<<node_->GetId ()<<" --->"<< nid<<" at "<<CURRENT_TIME<<endl;
       SchedulePacketWithoutContext(packet);
+    //SchedulePacketWithoutContext(packet,linkLayerTarget);
       routingOverhead++;
     }
 

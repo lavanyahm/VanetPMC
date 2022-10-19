@@ -810,10 +810,16 @@ public:
 	int             nextHop;
 	nsaddr_t        previousHop;
 
+
 	double          X,Y,speed;
 	double          priority;
 	int             pSize;
 	int             num_forwards;
+
+	int		CH_ID;
+	int		TO_CH_HOP;
+	int		nFollowers;
+
 };
 
 /**

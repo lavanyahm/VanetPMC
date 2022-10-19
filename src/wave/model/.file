@@ -1,5 +1,6 @@
 
-void	vanetRouting::SchedulePacketWithoutContext(Ptr<Packet> packet,void* target)
+//void	vanetRouting::SchedulePacketWithoutContext(Ptr<Packet> packet, void* target)
+void    vanetRouting::SchedulePacketWithoutContext(Ptr<Packet> packet)
 {
 	double	coverage = node_->coverage;
 	double	delay = PROP_DELAY + MIN_DELAY;
