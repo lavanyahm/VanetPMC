@@ -13,10 +13,7 @@
 #define PRINTLOGS false
 #define NODEMOVEMENT false
 #define PRINTANAYSIS false
-#define RELATIVEMOBILITY false
-#define PRINT_NB_LIST false
-#define CLUSTER_HEAD_SELCTION false
-#define PRINT_CLUSTER_TRANS false
+
 namespace ns3 {
   using namespace std;
   
@@ -25,7 +22,7 @@ namespace ns3 {
 #define abs_(a)	        ( (a) >= (0) ? (a) : (-a) )
 
 #include ".file"
-  NS_LOG_COMPONENT("Vanet_Cluster_Protocol");
+  NS_LOG_COMPONENT("VanetRoutingProtocol");
   struct vanet_head vanetRouting::vanethead_ = { 0 };
   int	vanetRouting::cluster_formed;
   double	vanetRouting::cluster_time;
@@ -94,7 +91,7 @@ namespace ns3 {
     pend = -1;
     
     fp = fn = tp = tn = 1;
-    sybil = 1;
+    sybil = 0;
     launchTime = 0;
     detectionTime = 0;
     detectionCount = 0;
@@ -120,8 +117,6 @@ namespace ns3 {
   {
     if(sybil == 1)
       {
-       // cout<<"\n sybil Attack "<<endl;
-
         Mlist_.add(index);
       }
     beaconTimer.SetFunction (&vanetRouting::beaconTransmission, this);
@@ -130,7 +125,7 @@ namespace ns3 {
     beaconTimer.Schedule (MilliSeconds (startTime));
   }
 
-  struct  CH_durations     vanetRouting::CH_and_Member_duartion()
+  struct  CH_durations  vanetRouting::CH_and_Member_duartion()
   {
 
     struct  CH_durations   ch_duration;
@@ -139,26 +134,33 @@ namespace ns3 {
     ch_duration.Avg_CH_duration = 0;
     ch_duration.Avg_Member_duration = 0;
 
-    //  cout<<"Avg_CH_duration:\t\t"<<CH_duration/cluster_head_changes_count<<endl;
-    // cout<<"Avg_Member_duration:\t\t"<<Mem_duration/mem_changes_count<<endl;
-    //cout<<"cluster_head_changes_count:\t\t"<<cluster_head_changes_count<<endl;
-
+ vanetRouting * tnode = vanethead_.lh_first;
+ for (; tnode; tnode = tnode->nextvanet())
+ {
+    if(tnode->status== HEAD)
+       {
+         CH_end_time_[tnode->index ] = CURRENT_TIME;
+         CH_duration_ = CH_duration_ +(CH_end_time_[tnode->index]- CH_start_time_[tnode->index ]);
+         cout<<"CH_duration_  " << CH_duration_<<endl;
+    }
+}
 
 
     if ((cluster_head_changes_count_> 0) && (CH_duration_ > 0.0) ){
-
-      //  cout<<"cluster_head_changes_count:\t\t"<<cluster_head_changes_count_<<endl;
-       // cout<<"Avg_CH_duration:\t\t"<<CH_duration_/cluster_head_changes_count_<<endl;
         ch_duration.cluster_head_changes_count = cluster_head_changes_count_ ;
         ch_duration.Avg_CH_duration = CH_duration_/cluster_head_changes_count_;
+        cout<<"cluster_head_changes_count:\t\t"<<cluster_head_changes_count_<<endl;
+        cout<<"Avg_CH_duration:\t\t"<<CH_duration_/cluster_head_changes_count_<<endl;
       }
+
+
     if ((CM_count_> 0) && (CM_duration_ >0) ){
 
-        //cout<<"cluster_memeber_changes_count:\t\t"<<CM_count_<<endl;
-
-        ch_duration.Avg_Member_duration =   CM_duration_/CM_count_;;
-        //cout<<"Avg_CM_duration:\t\t"<<CM_duration_/CM_count_<<endl;
+        cout<<"cluster_memeber_changes_count:\t\t"<<CM_count_<<endl;
+        ch_duration.Avg_Member_duration =   CM_duration_/CM_count_;
+        cout<<"Avg_CM_duration:\t\t"<<CM_duration_/CM_count_<<endl;
       }
+
     return ch_duration;
   }
 
@@ -218,7 +220,7 @@ namespace ns3 {
   {
 
     //  cout<<"recvBeacon:: index "<<index<<" From "<<p->SenderID<<" p->CH_ID  "<< p->CH_ID << " p->TO_CH_HOP " <<p->TO_CH_HOP  <<endl;
-    nbList_.add(p->SenderID,p->X,p->Y,p->speed,p->CH_ID,p->TO_CH_HOP);
+    nbList_.add(p->SenderID, p->X, p->Y, p->speed, p->CH_ID, p->TO_CH_HOP);
     rss_table_.add(p->SenderID,p->RSSI);
     if(node_->proposed == 1)
       {
@@ -253,7 +255,7 @@ namespace ns3 {
           {
             nbList_.remove(nid);
             i--;
-          }/*    else    {    nbList_.add(nid,x2,y2,s);}*/
+          }/*   else    {    nbList_.add(nid,x2,y2,s);}*/
       }
 #if PRINTLOGS
     cout<< "updateNBRList:: exit for node_->id  "<<node_->GetId ()<<endl;
@@ -288,8 +290,8 @@ namespace ns3 {
     packet->Broadcast     = 0;
     packet->nextHop       = -1;
 
-    packet->CH_ID         =     CH_ID;
-    packet->TO_CH_HOP     =     TO_CH_HOP;
+    packet->CH_ID         = CH_ID;
+    packet->TO_CH_HOP     = TO_CH_HOP;
     //   packet->nFollowers    =     fclist.count;
 
     //  packet->direction     =      direction;
@@ -326,24 +328,24 @@ namespace ns3 {
     packet->vanetPacket = VANET;
     packet->vanetType = BEACON;
     
-    packet->X	        =	get_x();
-    packet->Y	        =	get_y();
+    packet->X	=	get_x();
+    packet->Y	=	get_y();
     packet->speed	=	get_speed();
-    packet->pSize	=  HDR_LEN;
+    packet->pSize	=	HDR_LEN;
     
-    packet->SenderID    =  SybilID();
-    packet->ReceiverID  =  IP_BROADCAST;
+    packet->SenderID =	SybilID();
+    packet->ReceiverID = IP_BROADCAST;
     
     packet->previousHop = index;
     
-    packet->TxPort      = vanetPort;
-    packet->RxPort      = vanetPort;
+    packet->TxPort = vanetPort;
+    packet->RxPort = vanetPort;
     
     packet->nbBroadcast = 1;
-    packet->Broadcast   = 0;
-    packet->nextHop     = -1;
+    packet->Broadcast = 0;
+    packet->nextHop = -1;
 
-  //  cout<<"\n Broadcasting sybil"<<endl;
+    //cout<<"broadcasting cybil"<<endl;
     SchedulePacketWithoutContext(packet);
     //SchedulePacketWithoutContext(packet,linkLayerTarget);
     routingOverhead++;
@@ -508,7 +510,7 @@ namespace ns3 {
   double vanetRouting::get_relativeMobility ()
   {
     double calculatedRelativeMobility = 0.0;
-#if RELATIVEMOBILITY
+#if 0
     std::cout<<"get_RelativeMobility ::"<<node_->GetId ()<<" : " <<" Speed "<<node_->speed <<endl;
     cout<<" nbList_.nodeid            speed   "<<endl;
     for(int i=0;i<nbList_.count;i++)
@@ -711,13 +713,11 @@ namespace ns3 {
     
     double PRI = (alpha * (1.0/N_follow)) + (beta * ETX) + (gamma * 1/LLT);
     node_->priority = PRI;
-    //  cout<<"Priority_estimation node_id "<<node_->GetId ()<<" FC  "<<fclist.count<<"PRI  "<<PRI<<" Nf"<<N_follow <<endl;
+     cout<<"Priority_estimation node_id "<<node_->GetId ()<<" FC  "<<fclist.count<<"PRI  "<<PRI<<" Nf"<<N_follow <<endl;
     //if(PRI > 0)
     if (!isnan(PRI))
       {
-#if PRINTANAYSIS
         cout<<"performPriority_estimation::  "<<node_->GetId ()<<" Priority  "<<PRI<<endl;
-#endif
         AnnouncePriority(PRI);
       }
   }
@@ -768,9 +768,7 @@ namespace ns3 {
   {
     double	prio = p->priority;
     int pos = nbList_.check(p->SenderID);
-#if PRINTLOGS
     cout<<"recvPriority:: "<<node_->GetId () << " <---- "<<p->SenderID<< " PRI  "<< prio <<endl;
-#endif
     if(pos != -1)
       {
         nbList_.p[pos] = prio;
@@ -793,7 +791,8 @@ namespace ns3 {
           }
       }
 
-#if  PRINT_NB_LIST
+#if 0// PRINTLOGS
+
     cout<<"\n---------nbList"<< node_->GetId ()<<":--------- \nnodeid           pri "<<endl;
     for(int i=0;i<nbList_.count;i++)
       {
@@ -812,6 +811,8 @@ namespace ns3 {
 
 #endif
 
+
+
     /* if the sender is follower then dont send followe req
   if node is having its header id then, no furthur tasks*/
     if (pos!= -1)
@@ -819,9 +820,9 @@ namespace ns3 {
 
         if( (( fclist.check (nbList_.nodeid[pos])  ) == -1)  && ( prio <  node_->priority )&&  (CH_ID == -1))
           {
-#if PRINTLOGS
+
+
             cout<<" Need to Follow"<<endl;
-#endif
             if (pos != -1)
               {
 
@@ -829,16 +830,12 @@ namespace ns3 {
                 int CH_id = -1;
                 CH_id =  get_CH_Node();
                 if (CH_id!= -1){
-#if PRINTLOGS
                     cout<<"recvPriority::"<<node_->GetId () << " ConnectToCH  "<<CH_id<<endl;
-#endif
                     ConnectToCH(CH_id);
                   }else{
                     int parent_id = -1;
                     parent_id = get_parent_Node ();
-#if PRINTLOGS
                     cout<<"recvPriority::parent_id "<<parent_id<<endl;
-#endif
                     if (parent_id != -1 )
                       {
                         if (TryConnectionCM == false)
@@ -1008,10 +1005,7 @@ namespace ns3 {
   void	vanetRouting::clusterHeadSelection()
   {
     /**************Clustering process PMC ****/
-#if CLUSTER_HEAD_SELCTION
-
     std::cout<<"\n clusterHeadSelection::  "<<node_->GetId ()<< endl;
-#endif
     int	 nNodes = NodeList::GetNNodes();
     int  NfollowArry[nNodes];
     double  RelativeMobility[nNodes];
@@ -1039,7 +1033,7 @@ namespace ns3 {
       {
         infoTable_.add(i,get_x(i),get_y(i),get_speed(i),get_priority(i),NfollowArry[i]);
       }
-#if CLUSTER_HEAD_SELCTION
+#if 1  //PRINTLOGS
 
     cout<<"\nclusterHeadSelection : infoTable_ for node_"<<node_->GetId ()<<endl;
     cout<<"i\tnodeid[i]\tx(i)        y(i)            speed(i)         priority(i)      Nfollow               RelativeMobility  "<<endl;
@@ -1092,8 +1086,7 @@ namespace ns3 {
             if(dist < node_->coverage)
               {
                 //  list[lcount++] = tmpList_.nodeid[i];
-
-                node_list[lcount].node_id = tmpList_.nodeid[i];
+                 node_list[lcount].node_id = tmpList_.nodeid[i];
                 node_list[lcount].node_covge = dist;
                 lcount++;
               }
@@ -1242,9 +1235,7 @@ namespace ns3 {
     sprintf(desc, "%d", node_->GetId());
     anim->UpdateNodeColor(node_,0,255,0);
     int nodePreState = status;
-#if PRINT_CLUSTER_TRANS
     cout<<"clusterTransition ::   "<<node_->GetId ()<<"  nodePreState "<< nodePreState<<endl;
-#endif
     //list_ = cluster head selction list
     if(list_.check(index) != -1)
       {
@@ -1255,15 +1246,13 @@ namespace ns3 {
         CH_ID = node_->GetId ();
         TO_CH_HOP = 0;
         CH_start_time_[index] = CURRENT_TIME;
-        cout<<" clusterTransition :: "<<node_->GetId ()<<" nodePreState "<< nodePreState<<" status  HEAD"<< endl;
+        cout<<"-------------\n clusterTransition :: node_id "<<node_->GetId ()<<" nodePreState "<< nodePreState<<" status  HEAD\n------------"<< endl;
         if((nodePreState == MEMBER) && (status ==HEAD ))
           {
 
             CM_end_time_[index] = CURRENT_TIME;
-            cout<<"clusterTransition::    "<<CM_duration_ << " index: "<<index ;
             CM_duration_ = CM_duration_ +(CM_end_time_[index]- CM_start_time_[index]);
-
-            cout<<" clusterTransition::  CM_duration_  "<<CM_duration_  <<" CM_end_time_[index] "<<CM_end_time_[index]<<" stattime "<<CM_start_time_[index]<< endl;
+            cout<<"clusterTransition::  CM_duration_  "<<CM_duration_  <<" CM_end_time_[index] "<<CM_end_time_[index]<<" stattime"<<CM_start_time_[index]<<endl;
             CM_end_time_[index] = 0.0;
             CM_start_time_[index] = 0.0;
             CM_count_ ++;
@@ -1287,26 +1276,25 @@ namespace ns3 {
     memberlist_.count = 0;//TBD
     Ptr<Packet> packet = Create<Packet> ();
 
-    packet->vanetPacket =      VANET;
-    packet->vanetType   =       CLUSTER;
+    packet->vanetPacket =   VANET;
+    packet->vanetType   =   CLUSTER;
     packet->X           =	get_x();
     packet->Y           =	get_y();
     packet->speed       =	get_speed();
     packet->priority    =	node_->priority;
     packet->pSize       =	HDR_LEN;
-    packet->SenderID    =       index;
-    packet->ReceiverID  =       IP_BROADCAST;
-    packet->previousHop =       index;
-    packet->TxPort      =       vanetPort;
-    packet->RxPort      =       vanetPort;
-    packet->nbBroadcast =       1;
-    packet->Broadcast   =       0;
-    packet->nextHop     =       -1;
-    packet->CH_ID       =       CH_ID;
-    packet->TO_CH_HOP   =       TO_CH_HOP;
+    packet->SenderID    =   index;
+    packet->ReceiverID  =   IP_BROADCAST;
+    packet->previousHop =   index;
+    packet->TxPort      =   vanetPort;
+    packet->RxPort      =   vanetPort;
+    packet->nbBroadcast =   1;
+    packet->Broadcast   =   0;
+    packet->nextHop     =   -1;
+    packet->CH_ID       =   CH_ID;
+    packet->TO_CH_HOP   =   TO_CH_HOP;
 
     SchedulePacketWithoutContext(packet);
-    //SchedulePacketWithoutContext(packet,linkLayerTarget);
     routingOverhead++;
 
     transitionTimer.SetFunction (&vanetRouting::StateChecking, this);
@@ -1338,9 +1326,12 @@ namespace ns3 {
   {
     cout<<"StateChecking ::"<<node_->GetId ()<<" status "<<status <<" NBR List "<<nbList_.count <<" Fc List"  <<fclist.count<< endl;
     int nodePreState =status;
+    cout<<" Head"<<HEAD<<"\n";
     if(status == HEAD)
       {
-        if((fclist.count ==0 )&& (nbList_.count == 0))
+        cout<<" LHM Head Enter "<<HEAD<<"\n";
+
+        if(((fclist.count ==0 )&& (nbList_.count == 0)))
           {
             status = ISO_CH;
             CH_ID = -1;
@@ -1354,6 +1345,7 @@ namespace ns3 {
             cluster_head_changes_count_++;
           }else
           {
+             cout<<" LHM Head Send Annaoce"<<HEAD<<"\n";
             sendCHAnnouncement();
 
           }
@@ -1377,6 +1369,7 @@ namespace ns3 {
             CM_count_ ++;
             cout<<"StateChecking:: nodeStatechange  nodePreState id "<<node_->GetId ()<< "status   "<<nodePreState << " change to   "<<node_->nodeState  <<  "\n";
             cout<<" MeDuration index "<<index<< " "<<CM_duration_<<" stattime"<<CM_start_time_[index]<<"End Time "<<CM_end_time_[index] <<"MeMCount  " <<CM_count_<<endl;
+            cout<<" status == MEMBER CM_duration_ "<<CM_duration_;
             CM_end_time_[index] =0.0;
             CM_start_time_[index]= 0.0;
 
@@ -1387,7 +1380,9 @@ namespace ns3 {
     if((status == HEAD) || (status == ISO_CH) || (status == MEMBER) )
       {
         transitionTimer.SetFunction (&vanetRouting::StateChecking, this);
-        double	nextInterval = (1 * 100000);
+      //  double	nextInterval = (1* 100000);
+        double	nextInterval = (1 * 1000);
+
         transitionTimer.Cancel();
         transitionTimer.Schedule (MilliSeconds (nextInterval));
       }
@@ -1404,10 +1399,7 @@ namespace ns3 {
   {
     //  int nodePreState = node_->nodeState;
     nsaddr_t cid = p->SenderID;
-#if PRINT_CLUSTER_TRANS
     cout<<"recvClusterAnnouncement:: reciver "<<index<< " Status " <<status << " CH_ID "<<CH_ID<< " senderId "<<p->SenderID<< endl;
-#endif
-
     if(status == INITIAL)
       {
         if(TryConnectionCH == false)
@@ -1434,13 +1426,9 @@ namespace ns3 {
               }
           }
       }  else  if(status == HEAD) { //	Check for Intra Cluster Interference
-        #if PRINT_CLUSTER_TRANS
         cout<<"recvClusterAnnouncement::  Head  "<<node_->GetId ()<< " <---- "<<cid<< "\n";
-#endif
         if(Check_for_IntraClusterInterference(cid) == 1){
-            #if PRINT_CLUSTER_TRANS
             cout<<" recvClusterAnnouncement:: "<<node_->GetId ()<<" Head node Interfernce \n\n";
-#endif
             mergeTimer.Cancel ();
             mergeTimer.SetFunction(&vanetRouting::PerformClusterMerging,this);
             mergeTimer.Schedule (MilliSeconds (MERGE_TIMER));
@@ -1538,10 +1526,7 @@ void	vanetRouting::ConnectToCH(nsaddr_t nid)
 #endif
 void	vanetRouting::ConnectToCH(nsaddr_t nid)
 {
-#if PRINT_CLUSTER_TRANS
   cout<<"ConnectToCH_::join_request   "<<index<<" --->  "<<nid <<endl;
-#endif
-
   JoinCluster(nid);
 
 }
@@ -1552,15 +1537,11 @@ void vanetRouting::joinCH()
   int parent_id = -1;
   TryConnectionCH  = true;
   joinCHTimer.Cancel ();
-#if PRINTLOGS
   cout<<"joinCH ::  ConnectToCH reply timer expired  "<<node_->GetId ()<<endl;
-#endif
   if (joinResRevd ==  true) return;
   parent_id = get_parent_Node ();
   if (parent_id  != -1){
-#if PRINTLOGS
-  cout<<"joinCH ::  ConnectToCH reply timer expired  "<<index << "  sent parent_id "<<parent_id<<endl;
- #endif
+      cout<<"joinCH ::  ConnectToCH reply timer expired  "<<index << "  sent parent_id "<<parent_id<<endl;
       ReqToFollow(parent_id);
     }
 }
@@ -1592,7 +1573,6 @@ void	vanetRouting::JoinCluster(nsaddr_t nid)
   packet->nextHop = nid;
 
   joinResRevd = false;
-  //SchedulePacketWithoutContext(packet,linkLayerTarget);
   SchedulePacketWithoutContext(packet);
   joinCHTimer.Cancel ();
   joinCHTimer.SetFunction (&vanetRouting::joinCH, this);
@@ -1605,7 +1585,7 @@ void	vanetRouting::recvJoinReq(Ptr<Packet> p)
 {
 
 
-#if PRINTLOGS
+#if 1 //PRINTLOGS
   cout<<"recvJoinReq :: "<<node_->GetId ()<<" status "<<status <<" <---- "<<p->SenderID <<" FcCount "<<fclist.count<<"\n-----Node Fc List-------:\n ";
   for(int i=0;i<fclist.count;i++)
     {
@@ -1674,19 +1654,17 @@ void	vanetRouting::sendJoinResponse(nsaddr_t nid)
   packet->nextHop        = nid;
   packet->CH_ID          = CH_ID;
   packet->TO_CH_HOP      = TO_CH_HOP;
-#if PRINT_CLUSTER_TRANS
+
   cout<<"sendJoinResponse Sender "<<node_->GetId ()<<" --> "<<nid<<" CH_ID "<<CH_ID<<" TO_CH_HOP "<<TO_CH_HOP<<  " at "<<CURRENT_TIME<<endl;
-#endif
-  	//SchedulePacketWithoutContext(packet,linkLayerTarget);
+  //	SchedulePacketWithoutContext(packet,linkLayerTarget);
   SchedulePacketWithoutContext(packet);
   routingOverhead++;
 }
 
 void	vanetRouting::recvJoinRsp(Ptr<Packet> p)
 {
-#if PRINT_CLUSTER_TRANS
+
   cout<<"recvJoinRsp :: "<<node_->GetId ()<<" <--- "<<p->SenderID<<" p->CHID "<< p->CH_ID<<" p->CH_HOP "<< p->TO_CH_HOP<<  "  at "<<CURRENT_TIME<<endl;
-#endif
   int nodePreState = node_->nodeState;
   if(p->ReceiverID == index )
     {
@@ -1791,7 +1769,6 @@ void	vanetRouting::PerformClusterMerging(nsaddr_t nid)
 
       cout<<"\nClusterMergeRequest"<<node_->GetId ()<<" --->"<< nid<<" at "<<CURRENT_TIME<<endl;
       SchedulePacketWithoutContext(packet);
-    //SchedulePacketWithoutContext(packet,linkLayerTarget);
       routingOverhead++;
     }
 
@@ -2044,6 +2021,7 @@ void	vanetRouting::recvLeaveMessage(Ptr<Packet> p)
 
 void	vanetRouting::initializeDataTransmission(nsaddr_t dst,Ptr<Packet> p,int packetSize,double pkt_interval,double startTime,double stopTime)
 {
+    std::cout<<"initializeDataTransmission\n";
   dataTimer.dataPacket = p;
   dataTimer.interval = pkt_interval;
   dataTimer.packetSize = packetSize;
