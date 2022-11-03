@@ -156,9 +156,9 @@ namespace ns3 {
     Timer				beaconTimer;
     Timer				minitTimer;
     Timer				joinTimer;
-    Timer                               mergeTimer;
-    Timer                               joinCHTimer;
-    int                                 Lane;
+    Timer               mergeTimer;
+    Timer              joinCHTimer;
+    int                Lane;
 
     void				initializeBeaconTimer();
     void				initializeMovement();
@@ -201,8 +201,8 @@ namespace ns3 {
     int         	get_parent_Node();
     int 		get_LeastPRINode();
 
-//   void		SchedulePacketWithoutContext(Ptr<Packet> packet,void* target);
-  void		SchedulePacketWithoutContext(Ptr<Packet> packet);
+    //	void		SchedulePacketWithoutContext(Ptr<Packet> packet,void* target);
+    void		SchedulePacketWithoutContext(Ptr<Packet> packet);
     void		SchedulePacket(vanetRouting *vanet,Ptr<Packet> packet,double delay);
     static              vanetRouting* get_vanet_by_address(nsaddr_t);
     double		get_x();
@@ -428,9 +428,9 @@ namespace ns3 {
     {
     public:
       nsaddr_t	nodeid[1000];
-      double          startTime[1000];
-      double		endTime[1000];
-      double	        duration[1000];
+      double    startTime[1000];
+      double	endTime[1000];
+      double	duration[1000];
       int		count;
       void printList();
       headDurList()

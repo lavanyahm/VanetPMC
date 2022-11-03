@@ -45,18 +45,17 @@
 #define COURSECHANGE false
 #define ROADLENGTH             3000 //1500
 
-#define DATA_TRANSFER true
-
 using namespace ns3;
 using namespace std;
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleOcb");
 uint32_t numPackets = 1;
 double	speed = 15;
 double	coverage = 300;
-double  speed_max = 30.0;
-double  speed_min = 0.0;
-int	n_nodes = 20;// 64;
+double        speed_max = 30.0;
+double        speed_min = 0.0;
+//int	n_nodes = 20;// 64;
 
+int	n_nodes = 64;// 64;
 
 static void results(vanetRouting *vanet)
 {
@@ -71,19 +70,19 @@ static void results(vanetRouting *vanet)
      x.close ();
 
     }else{
-     cout<<"*******///Creating  Simulation.csv file//********\n";
+     cout<<"*******Creating  Simulation.csv file********\n";
 
     }
 
   FILE *pFile;
   pFile = fopen("SimulationResult.csv","a");
   cout<<"\n----------------------Simulation Configurations------------------"<<endl;
-  cout<<"#ispeed\t"<<speed<<endl;
+  cout<<"#speed\t"<<speed<<endl;
   cout<<"#Coverage\t"<<coverage<<endl;
   cout<<"#NoOfNodes\t"<<n_nodes<<endl;
   cout<<"#Velocity\t"<<speed_min<<"-"<<speed_max<<endl;
 
-#if DATA_TRANSFER
+  cout<<"\n---------------------------Simulation Results-------------------------------------"<<endl;
   double	pdr = double(vanet->recv_count) / vanet->send_count * 100;
   double	delay = 0;
   double	jitter_sum = 0;
@@ -111,25 +110,22 @@ static void results(vanetRouting *vanet)
   double	missrate = fn / (fn+tp);
   double	fpr = fp / (fp+tn);
   double	detectionDelay = vanet->get_DD();
-  double        NRO=(double(vanet->routingOverhead) / vanet->recv_count);
- #endif
+ // double        NRO=(double(vanet->routingOverhead) / vanet->recv_count);
   struct   CH_durations ch_duration;
 
   ch_duration = vanet->CH_and_Member_duartion();
+  cout<<"Avg_CH_duration: "<<ch_duration.Avg_CH_duration<<" seconds"<<endl;
+  cout<<"Avg_Member_duration: "<<ch_duration.Avg_Member_duration<<" seconds"<<endl;
+  cout<<"cluster_head_changes_count: "<<ch_duration.cluster_head_changes_count<<" seconds"<<endl;
+#if 1
 
-
-    cout<<"\n---------------------------Simulation Results-------------------------------------"<<endl;
-  cout<<"Avg_CH_duration             : "<<ch_duration.Avg_CH_duration<<" seconds"<<endl;
-  cout<<"Avg_Member_duration         : "<<ch_duration.Avg_Member_duration<<" seconds"<<endl;
-  cout<<"cluster_head_changes_count  : "<<ch_duration.cluster_head_changes_count<<" seconds"<<endl;
-#if DATA_TRANSFER
-
-  cout<<"Pkt_send: \t\t"<<vanet->send_count<<endl;
-  cout<<"Pkt_recv:\t\t"<<vanet->recv_count<<endl;
+  cout<<"Pkt_send:\t"<<vanet->send_count<<endl;
+  cout<<"Pkt_recv:\t"<<vanet->recv_count<<endl;
 
   cout<<"PDR:\t\t"<<pdr<<endl;
   cout<<"Throughput:\t\t"<<throughput<<endl;
   cout<<"Overheads:\t\t"<<vanet->routingOverhead<<endl;
+  cout<<"#NoOfPackets\t"<<numPackets<<endl;
   cout<<"avgDelay:\t\t"<<avgDelay<<endl;
   cout<<"jitter:\t\t"<<jitter<<endl;
   cout<<"Goodput:\t\t"<<goodput<<endl;
@@ -143,10 +139,10 @@ static void results(vanetRouting *vanet)
   cout<<"DetectionDelay:\t\t"<<detectionDelay<<endl;
 #endif
 
-  cout<<"\n----------------------EndOfResults------------------------"<<endl;
+  cout<<"EndOfResults\t\t"<<endl;
 
 
-#if DATA_TRANSFER
+#if 0
 if (FileExist ==false){
 
 
@@ -156,7 +152,9 @@ if (FileExist ==false){
   /*PDR,Throughput,Avg_CH_duration,Avg_Member_duration.
          * cluster_head_changes_count*/
   fprintf (pFile, "%d\t  %.2lf\t  %.2lf\t  %.2lf\t %d\t %.4lf\t %.4lf\t%d\t%.4lf\t %.4lf\t %.4lf\t%.4lf\t%d\t%.4lf\n",n_nodes,speed_min,speed_max,pdr,int(coverage),ch_duration.Avg_CH_duration, ch_duration.Avg_Member_duration, ch_duration.cluster_head_changes_count,avgDelay,jitter,throughput,goodput,vanet->routingOverhead,NRO);
-#else
+
+#endif
+
 
   if (FileExist ==false){
         fprintf (pFile, "#Nodes \t speed_min \t speed_max \t coverage \t cluster_head_changes_count \tAvg_CH_duration(seconds) \t Avg_Member_duration(seconds)  \n");
@@ -164,9 +162,10 @@ if (FileExist ==false){
       /*PDR,Throughput,Avg_CH_duration,Avg_Member_duration.
            * cluster_head_changes_count*/
     fprintf (pFile, "%d\t %.2lf\t %.2lf\t %d\t%d\t %.4lf\t %.4lf\n",n_nodes,speed_min,speed_max,int(coverage),ch_duration.cluster_head_changes_count,ch_duration.Avg_CH_duration, ch_duration.Avg_Member_duration);
-#endif
+
   fclose (pFile);
 }
+
 
 #if COURSECHANGE
 static void
@@ -190,14 +189,14 @@ int main (int argc, char *argv[])
   uint32_t packetSize = 1000; // bytes
 
   double	interval = 0.1; // seconds
-  bool          verbose = false;
-  int           proposed = 1;
+  bool      verbose = false;
+  int       proposed = 1;
   double	coverage = 300;
   double	VehicleLength = 3;
   double	alpha = 0.3;
   double	beta = 0.4;
   double	gamma = 0.3;
-  int           stop_time	=1000;
+  int       stop_time	= 1000;
 
   CommandLine cmd;
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
@@ -371,7 +370,7 @@ int main (int argc, char *argv[])
   NS_LOG_INFO ("Assign IP Addresses.");
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer i = ipv4.Assign (devices);
-#if DATA_TRANSFER
+#if 1
   //LHM test
    // Traffic
   {
